@@ -87,6 +87,8 @@ def run_browser_cycle():
     log(f"[Mail] {mail.email}")
 
     co = ChromiumOptions()
+    # 设置无头运行
+    co.set_argument("--headless=new")
     co.set_argument("--incognito")
     co.set_argument(f"--proxy-server=http://{PROXY_ADDR}")
     co.set_user_agent(get_random_ua())
