@@ -241,7 +241,7 @@ if __name__ == "__main__":
     try:
         while True:
             run_browser_cycle()
-            print("\nCooldown 3s...")
+            print("\n已经完成一个注册，等待 3s 后继续...")
             time.sleep(3)
     except KeyboardInterrupt:
         pass
