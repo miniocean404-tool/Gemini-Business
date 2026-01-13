@@ -92,6 +92,7 @@ def run_browser_cycle():
     co.set_argument("--incognito")
     co.set_argument(f"--proxy-server=http://{PROXY_ADDR}")
     co.set_user_agent(get_random_ua())
+    # 禁用 navigator.webdriver 属性，使其返回 undefined 而非 true, 移除 Chrome 被自动化工具控制时暴露的标识
     co.set_argument("--disable-blink-features=AutomationControlled")
     co.auto_port()
 
