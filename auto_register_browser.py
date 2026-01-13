@@ -1,44 +1,50 @@
-import time
-import random
 import csv
 import os
-import sys
+import random
+import time
 from datetime import datetime
-from DrissionPage import ChromiumPage, ChromiumOptions
+
+from DrissionPage import ChromiumOptions, ChromiumPage
+
 from clash_manager import get_manager
 from mail_client import DuckMailClient
 
 CSV_FILE = "result.csv"
 LOG_FILE = "log.txt"
-PROXY_ADDR = "127.0.0.1:17890"
+PROXY_ADDR = "127.0.0.1:7890"
+
 
 def log(msg, level="INFO"):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
     log_line = f"[{timestamp}] [{level}] {msg}"
     print(msg)
     try:
-        with open(LOG_FILE, 'a', encoding='utf-8') as f:
-            f.write(log_line + '\n')
+        with open(LOG_FILE, "a", encoding="utf-8") as f:
+            f.write(log_line + "\n")
     except:
         pass
+
 
 def log_step(step_name, start_time, success=True):
     elapsed = (time.time() - start_time) * 1000
     status = "OK" if success else "FAIL"
     log(f"  [{status}] {step_name}: {elapsed:.0f}ms", "PERF")
 
+
 def get_random_ua():
     versions = ["120.0.0.0", "121.0.0.0", "122.0.0.0", "123.0.0.0", "124.0.0.0"]
     v = random.choice(versions)
     return f"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{v} Safari/537.36"
 
+
 def get_next_id():
     if not os.path.exists(CSV_FILE):
         return 1
     try:
-        with open(CSV_FILE, 'r', encoding='utf-8-sig') as f:
+        with open(CSV_FILE, "r", encoding="utf-8-sig") as f:
             lines = list(csv.reader(f))
-            if len(lines) <= 1: return 1
+            if len(lines) <= 1:
+                return 1
             last_row = lines[-1]
             if last_row and last_row[0].isdigit():
                 return int(last_row[0]) + 1
@@ -46,19 +52,21 @@ def get_next_id():
         pass
     return 1
 
+
 def save_account(email, password):
     file_exists = os.path.exists(CSV_FILE)
     next_id = get_next_id()
     date_str = datetime.now().strftime("%Y-%m-%d")
     try:
-        with open(CSV_FILE, 'a', newline='', encoding='utf-8-sig') as f:
+        with open(CSV_FILE, "a", newline="", encoding="utf-8-sig") as f:
             writer = csv.writer(f)
             if not file_exists:
-                writer.writerow(['ID', 'Account', 'Password', 'Date'])
+                writer.writerow(["ID", "Account", "Password", "Date"])
             writer.writerow([next_id, email, password, date_str])
         log(f"[Save] {email}")
     except Exception as e:
         log(f"[Error] Save failed: {e}", "ERROR")
+
 
 def run_browser_cycle():
     clash = get_manager()
@@ -79,10 +87,10 @@ def run_browser_cycle():
     log(f"[Mail] {mail.email}")
 
     co = ChromiumOptions()
-    co.set_argument('--incognito')
-    co.set_argument(f'--proxy-server=http://{PROXY_ADDR}')
+    co.set_argument("--incognito")
+    co.set_argument(f"--proxy-server=http://{PROXY_ADDR}")
     co.set_user_agent(get_random_ua())
-    co.set_argument('--disable-blink-features=AutomationControlled')
+    co.set_argument("--disable-blink-features=AutomationControlled")
     co.auto_port()
 
     page = None
@@ -97,9 +105,11 @@ def run_browser_cycle():
         log_step("Load page", t)
 
         t = time.time()
-        email_input = page.ele('#email-input', timeout=3) or \
-                      page.ele('css:input[name="loginHint"]', timeout=2) or \
-                      page.ele('css:input[type="text"]', timeout=2)
+        email_input = (
+            page.ele("#email-input", timeout=3)
+            or page.ele('css:input[name="loginHint"]', timeout=2)
+            or page.ele('css:input[type="text"]', timeout=2)
+        )
         if not email_input:
             log("[Error] Email input not found", "ERROR")
             return True
@@ -112,20 +122,19 @@ def run_browser_cycle():
         time.sleep(0.2)
         email_input.input(mail.email)
         time.sleep(0.3)
-        page.run_js('''
+        page.run_js("""
             let el = document.querySelector("#email-input");
             if(el) {
                 el.dispatchEvent(new Event("input", {bubbles: true}));
                 el.dispatchEvent(new Event("change", {bubbles: true}));
                 el.dispatchEvent(new Event("blur", {bubbles: true}));
             }
-        ''')
+        """)
         log_step("Input email", t)
 
         t = time.time()
         time.sleep(0.5)
-        continue_btn = page.ele('tag:button@text():使用邮箱继续', timeout=2) or \
-                       page.ele('tag:button', timeout=1)
+        continue_btn = page.ele("tag:button@text():使用邮箱继续", timeout=2) or page.ele("tag:button", timeout=1)
         if continue_btn:
             try:
                 continue_btn.click()
@@ -133,7 +142,7 @@ def run_browser_cycle():
                 continue_btn.click(by_js=True)
             log_step("Click continue", t)
         else:
-            email_input.input('\n')
+            email_input.input("\n")
             log_step("Press enter", t)
 
         time.sleep(3)
@@ -141,8 +150,7 @@ def run_browser_cycle():
         t = time.time()
         code_input = None
         for _ in range(10):
-            code_input = page.ele('css:input[name="pinInput"]', timeout=2) or \
-                         page.ele('css:input[type="tel"]', timeout=1)
+            code_input = page.ele('css:input[name="pinInput"]', timeout=2) or page.ele('css:input[type="tel"]', timeout=1)
             if code_input:
                 break
             time.sleep(0.5)
@@ -160,8 +168,7 @@ def run_browser_cycle():
         log_step(f"Get code {code}", t)
 
         t = time.time()
-        code_input = page.ele('css:input[name="pinInput"]', timeout=3) or \
-                     page.ele('css:input[type="tel"]', timeout=2)
+        code_input = page.ele('css:input[name="pinInput"]', timeout=3) or page.ele('css:input[type="tel"]', timeout=2)
         if not code_input:
             log("[Error] Code input expired", "ERROR")
             return True
@@ -171,20 +178,20 @@ def run_browser_cycle():
         code_input.input(code)
         time.sleep(0.3)
         try:
-            page.run_js('''
+            page.run_js("""
                 let el = document.querySelector("input[name=pinInput]") || document.querySelector("input[type=tel]");
                 if(el) {
                     el.dispatchEvent(new Event("input", {bubbles: true}));
                     el.dispatchEvent(new Event("change", {bubbles: true}));
                 }
-            ''')
+            """)
         except:
             pass
         log_step("Input code", t)
 
         t = time.time()
         verify_btn = None
-        buttons = page.eles('tag:button')
+        buttons = page.eles("tag:button")
         for btn in buttons:
             btn_text = btn.text.strip() if btn.text else ""
             if btn_text and "重新" not in btn_text and "发送" not in btn_text and "resend" not in btn_text.lower():
@@ -198,7 +205,7 @@ def run_browser_cycle():
                 verify_btn.click(by_js=True)
             log_step("Click verify", t)
         else:
-            code_input.input('\n')
+            code_input.input("\n")
             log_step("Press enter", t, success=False)
 
         for _ in range(5):
@@ -224,6 +231,7 @@ def run_browser_cycle():
         log("[Browser] Closed")
 
     return True
+
 
 if __name__ == "__main__":
     print("Starting... (Ctrl+C to stop)")

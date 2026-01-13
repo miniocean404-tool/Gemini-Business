@@ -1,11 +1,13 @@
-import requests
-import time
-import re
 import random
+import re
 import string
+import time
+
+import requests
 
 BASE_URL = "https://api.duckmail.sbs"
-PROXY_URL = "http://127.0.0.1:17890"
+PROXY_URL = "http://127.0.0.1:7890"
+
 
 class DuckMailClient:
     def __init__(self):
@@ -21,12 +23,12 @@ class DuckMailClient:
             resp = requests.get(f"{BASE_URL}/domains", proxies=self.proxies, timeout=10)
             if resp.status_code == 200:
                 data = resp.json()
-                if 'hydra:member' in data and len(data['hydra:member']) > 0:
-                    domain = data['hydra:member'][0]['domain']
+                if "hydra:member" in data and len(data["hydra:member"]) > 0:
+                    domain = data["hydra:member"][0]["domain"]
         except:
             pass
 
-        rand_str = ''.join(random.choices(string.ascii_lowercase + string.digits, k=10))
+        rand_str = "".join(random.choices(string.ascii_lowercase + string.digits, k=10))
         timestamp = str(int(time.time()))[-4:]
         self.email = f"t{timestamp}{rand_str}@{domain}"
         self.password = f"Pwd{rand_str}{timestamp}"
@@ -34,24 +36,25 @@ class DuckMailClient:
         print(f"[Mail] Register: {self.email}")
 
         try:
-            reg = requests.post(f"{BASE_URL}/accounts",
-                              json={"address": self.email, "password": self.password},
-                              proxies=self.proxies, timeout=15)
+            reg = requests.post(
+                f"{BASE_URL}/accounts", json={"address": self.email, "password": self.password}, proxies=self.proxies, timeout=15
+            )
             if reg.status_code in [200, 201]:
-                self.account_id = reg.json().get('id')
+                self.account_id = reg.json().get("id")
                 return True
             return False
         except:
             return False
 
     def login(self):
-        if not self.email: return False
+        if not self.email:
+            return False
         try:
-            login = requests.post(f"{BASE_URL}/token",
-                                json={"address": self.email, "password": self.password},
-                                proxies=self.proxies, timeout=15)
+            login = requests.post(
+                f"{BASE_URL}/token", json={"address": self.email, "password": self.password}, proxies=self.proxies, timeout=15
+            )
             if login.status_code == 200:
-                self.token = login.json().get('token')
+                self.token = login.json().get("token")
                 return True
             return False
         except:
@@ -59,7 +62,8 @@ class DuckMailClient:
 
     def wait_for_code(self, timeout=300):
         if not self.token:
-            if not self.login(): return None
+            if not self.login():
+                return None
 
         print(f"[Mail] Waiting for code ({timeout}s)...")
         headers = {"Authorization": f"Bearer {self.token}"}
@@ -69,12 +73,12 @@ class DuckMailClient:
             try:
                 resp = requests.get(f"{BASE_URL}/messages", headers=headers, proxies=self.proxies, timeout=10)
                 if resp.status_code == 200:
-                    msgs = resp.json().get('hydra:member', [])
+                    msgs = resp.json().get("hydra:member", [])
                     if msgs:
-                        msg_id = msgs[0]['id']
+                        msg_id = msgs[0]["id"]
                         detail = requests.get(f"{BASE_URL}/messages/{msg_id}", headers=headers, proxies=self.proxies, timeout=10)
                         data = detail.json()
-                        content = data.get('text') or data.get('html') or ""
+                        content = data.get("text") or data.get("html") or ""
 
                         code = self._extract_code(content)
                         if code:
@@ -88,17 +92,20 @@ class DuckMailClient:
         return None
 
     def _extract_code(self, text):
-        pattern_context = r'(?:验证码|code|verification|passcode|pin).*?[:：]\s*([A-Za-z0-9]{4,8})\b'
+        pattern_context = r"(?:验证码|code|verification|passcode|pin).*?[:：]\s*([A-Za-z0-9]{4,8})\b"
         match = re.search(pattern_context, text, re.IGNORECASE | re.DOTALL)
-        if match: return match.group(1)
+        if match:
+            return match.group(1)
 
-        digits = re.findall(r'\b\d{6}\b', text)
-        if digits: return digits[0]
+        digits = re.findall(r"\b\d{6}\b", text)
+        if digits:
+            return digits[0]
 
         return None
 
     def delete(self):
-        if not self.account_id or not self.token: return
+        if not self.account_id or not self.token:
+            return
         headers = {"Authorization": f"Bearer {self.token}"}
         try:
             requests.delete(f"{BASE_URL}/accounts/{self.account_id}", headers=headers, proxies=self.proxies)

@@ -1,15 +1,15 @@
-import subprocess
-import requests
-import yaml
-import time
-import os
 import atexit
-import sys
+import os
 import random
+import time
 import urllib.parse
 
+import requests
+import yaml
+
+
 class ClashManager:
-    def __init__(self, executable="clash.exe", config="local.yaml", runtime_config="config_runtime.yaml", port=17890, api_port=9090):
+    def __init__(self, executable="clash.exe", config="local.yaml", runtime_config="config_runtime.yaml", port=7890, api_port=9091):
         self.executable = executable
         self.config = config
         self.runtime_config = runtime_config
@@ -23,13 +23,13 @@ class ClashManager:
         if not os.path.exists(self.config):
             raise FileNotFoundError(f"Config not found: {self.config}")
 
-        with open(self.config, 'r', encoding='utf-8') as f:
+        with open(self.config, "r", encoding="utf-8") as f:
             cfg = yaml.safe_load(f)
 
-        cfg['mixed-port'] = self.port
-        cfg['external-controller'] = f"127.0.0.1:{self.api_port}"
+        cfg["mixed-port"] = self.port
+        cfg["external-controller"] = f"127.0.0.1:{self.api_port}"
 
-        with open(self.runtime_config, 'w', encoding='utf-8') as f:
+        with open(self.runtime_config, "w", encoding="utf-8") as f:
             yaml.safe_dump(cfg, f, allow_unicode=True)
         print(f"[Clash] Config ready: {self.runtime_config}")
 
@@ -37,13 +37,14 @@ class ClashManager:
         if self.process:
             return
 
-        cmd = [self.executable, "-f", self.runtime_config]
-        self.process = subprocess.Popen(
-            cmd,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0
-        )
+        # 暂时注释 clash 启动逻辑, 使用本机 clash
+        # cmd = [self.executable, "-f", self.runtime_config]
+        # self.process = subprocess.Popen(
+        #     cmd,
+        #     stdout=subprocess.DEVNULL,
+        #     stderr=subprocess.DEVNULL,
+        #     creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0,
+        # )
 
         for _ in range(10):
             try:
@@ -65,7 +66,7 @@ class ClashManager:
         try:
             url = f"{self.api_url}/proxies"
             res = requests.get(url, timeout=5).json()
-            return res['proxies']
+            return res["proxies"]
         except:
             return {}
 
@@ -75,7 +76,7 @@ class ClashManager:
             url = f"{self.api_url}/proxies/{encoded_name}/delay?timeout={timeout}&url=http://www.gstatic.com/generate_204"
             res = requests.get(url, timeout=6)
             if res.status_code == 200:
-                return res.json().get('delay', 0)
+                return res.json().get("delay", 0)
             return -1
         except:
             return -1
@@ -96,14 +97,14 @@ class ClashManager:
 
         if not group_name or group_name not in proxies:
             for key, val in proxies.items():
-                if val['type'] == 'Selector' and len(val.get('all', [])) > 0:
+                if val["type"] == "Selector" and len(val.get("all", [])) > 0:
                     group_name = key
                     break
 
         if not group_name or group_name not in proxies:
             return None
 
-        all_nodes = proxies[group_name]['all']
+        all_nodes = proxies[group_name]["all"]
         random.shuffle(all_nodes)
 
         skip_keywords = ["自动选择", "故障转移", "DIRECT", "REJECT", "剩余", "到期", "官网"]
@@ -118,10 +119,8 @@ class ClashManager:
 
                 try:
                     time.sleep(1)
-                    test_proxies = {
-                        "http": f"http://127.0.0.1:{self.port}",
-                        "https": f"http://127.0.0.1:{self.port}"
-                    }
+                    test_proxies = {"http": f"http://127.0.0.1:{self.port}", "https": f"http://127.0.0.1:{self.port}"}
+
                     print(f"   Testing [{node}]...", end="")
                     resp = requests.get("https://www.google.com/ncr", proxies=test_proxies, timeout=5)
 
@@ -136,13 +135,16 @@ class ClashManager:
         print("[Clash] No healthy node found")
         return None
 
+
 _manager_instance = None
+
 
 def get_manager():
     global _manager_instance
     if not _manager_instance:
         _manager_instance = ClashManager()
     return _manager_instance
+
 
 @atexit.register
 def cleanup():

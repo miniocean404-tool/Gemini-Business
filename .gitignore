@@ -18,3 +18,4 @@ result.csv
 # System
 .DS_Store
 Thumbs.db
+uv.lock
