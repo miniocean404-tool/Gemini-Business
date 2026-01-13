@@ -53,7 +53,7 @@ class ClashManager:
                 requests.get(self.api_url, timeout=1)
                 print("[Clash] 已启动")
                 return
-            except:
+            except Exception:
                 time.sleep(1)
 
         print("[Clash] 启动失败")
@@ -69,7 +69,7 @@ class ClashManager:
             url = f"{self.api_url}/proxies"
             res = requests.get(url, timeout=5).json()
             return res["proxies"]
-        except:
+        except Exception:
             return {}
 
     def test_latency(self, proxy_name, timeout=5000):
@@ -80,7 +80,7 @@ class ClashManager:
             if res.status_code == 200:
                 return res.json().get("delay", 0)
             return -1
-        except:
+        except Exception:
             return -1
 
     def select_proxy(self, group_name, proxy_name):
@@ -90,7 +90,7 @@ class ClashManager:
             requests.put(url, json={"name": proxy_name}, timeout=5)
             print(f"[Clash] 切换节点: {proxy_name}")
             return True
-        except:
+        except Exception:
             return False
 
     def find_healthy_node(self, group_name=None):
@@ -131,7 +131,7 @@ class ClashManager:
                         return node
                     else:
                         print(" ❌ 被封锁")
-                except:
+                except Exception:
                     print(" ❌ 超时")
 
         print("[Clash] 未找到可用节点")

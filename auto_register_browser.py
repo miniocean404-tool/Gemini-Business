@@ -21,7 +21,7 @@ def log(msg, level="INFO"):
     try:
         with open(LOG_FILE, "a", encoding="utf-8") as f:
             f.write(log_line + "\n")
-    except:
+    except Exception:
         pass
 
 
@@ -48,7 +48,7 @@ def get_next_id():
             last_row = lines[-1]
             if last_row and last_row[0].isdigit():
                 return int(last_row[0]) + 1
-    except:
+    except Exception:
         pass
     return 1
 
@@ -141,7 +141,7 @@ def run_browser_cycle():
         if continue_btn:
             try:
                 continue_btn.click()
-            except:
+            except Exception:
                 continue_btn.click(by_js=True)
             log_step("点击继续", t)
         else:
@@ -188,7 +188,7 @@ def run_browser_cycle():
                     el.dispatchEvent(new Event("change", {bubbles: true}));
                 }
             """)
-        except:
+        except Exception:
             pass
         log_step("输入验证码", t)
 
@@ -204,7 +204,7 @@ def run_browser_cycle():
         if verify_btn:
             try:
                 verify_btn.click()
-            except:
+            except Exception:
                 verify_btn.click(by_js=True)
             log_step("点击验证", t)
         else:

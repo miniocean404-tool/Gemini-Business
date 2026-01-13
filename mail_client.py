@@ -25,7 +25,7 @@ class DuckMailClient:
                 data = resp.json()
                 if "hydra:member" in data and len(data["hydra:member"]) > 0:
                     domain = data["hydra:member"][0]["domain"]
-        except:
+        except Exception:
             pass
 
         rand_str = "".join(random.choices(string.ascii_lowercase + string.digits, k=10))
@@ -43,7 +43,7 @@ class DuckMailClient:
                 self.account_id = reg.json().get("id")
                 return True
             return False
-        except:
+        except Exception:
             return False
 
     def login(self):
@@ -57,7 +57,7 @@ class DuckMailClient:
                 self.token = login.json().get("token")
                 return True
             return False
-        except:
+        except Exception:
             return False
 
     def wait_for_code(self, timeout=300):
@@ -84,7 +84,7 @@ class DuckMailClient:
                         if code:
                             print(f"[邮箱] 验证码: {code}")
                             return code
-            except:
+            except Exception:
                 pass
 
             time.sleep(3)
@@ -109,5 +109,5 @@ class DuckMailClient:
         headers = {"Authorization": f"Bearer {self.token}"}
         try:
             requests.delete(f"{BASE_URL}/accounts/{self.account_id}", headers=headers, proxies=self.proxies)
-        except:
+        except Exception:
             pass
