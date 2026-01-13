@@ -33,7 +33,7 @@ class DuckMailClient:
         self.email = f"t{timestamp}{rand_str}@{domain}"
         self.password = f"Pwd{rand_str}{timestamp}"
 
-        print(f"[Mail] Register: {self.email}")
+        print(f"[邮箱] 注册: {self.email}")
 
         try:
             reg = requests.post(
@@ -65,7 +65,7 @@ class DuckMailClient:
             if not self.login():
                 return None
 
-        print(f"[Mail] Waiting for code ({timeout}s)...")
+        print(f"[邮箱] 等待验证码 ({timeout}秒)...")
         headers = {"Authorization": f"Bearer {self.token}"}
         start_time = time.time()
 
@@ -82,7 +82,7 @@ class DuckMailClient:
 
                         code = self._extract_code(content)
                         if code:
-                            print(f"[Mail] Code: {code}")
+                            print(f"[邮箱] 验证码: {code}")
                             return code
             except:
                 pass

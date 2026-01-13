@@ -63,9 +63,9 @@ def save_account(email, password):
             if not file_exists:
                 writer.writerow(["ID", "Account", "Password", "Date"])
             writer.writerow([next_id, email, password, date_str])
-        log(f"[Save] {email}")
+        log(f"[保存] {email}")
     except Exception as e:
-        log(f"[Error] Save failed: {e}", "ERROR")
+        log(f"[错误] 保存失败: {e}", "ERROR")
 
 
 def run_browser_cycle():
@@ -74,17 +74,17 @@ def run_browser_cycle():
 
     node = clash.find_healthy_node()
     if not node:
-        log("[Clash] No healthy node")
+        log("[Clash] 未找到可用节点")
         time.sleep(5)
         return True
 
     mail = DuckMailClient()
     print("-" * 40)
     if not mail.register():
-        log("[Mail] Register failed")
+        log("[邮箱] 注册失败")
         return True
 
-    log(f"[Mail] {mail.email}")
+    log(f"[邮箱] {mail.email}")
 
     co = ChromiumOptions()
     # 设置无头运行
@@ -98,14 +98,14 @@ def run_browser_cycle():
 
     page = None
     try:
-        log("[Browser] Starting...")
+        log("[浏览器] 正在启动...")
         page = ChromiumPage(co)
         page.run_js("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
 
         t = time.time()
         page.get("https://business.gemini.google/", timeout=30)
         time.sleep(3)
-        log_step("Load page", t)
+        log_step("加载页面", t)
 
         t = time.time()
         email_input = (
@@ -114,9 +114,9 @@ def run_browser_cycle():
             or page.ele('css:input[type="text"]', timeout=2)
         )
         if not email_input:
-            log("[Error] Email input not found", "ERROR")
+            log("[错误] 未找到邮箱输入框", "ERROR")
             return True
-        log_step("Find email input", t)
+        log_step("查找邮箱输入框", t)
 
         t = time.time()
         email_input.click()
@@ -133,7 +133,7 @@ def run_browser_cycle():
                 el.dispatchEvent(new Event("blur", {bubbles: true}));
             }
         """)
-        log_step("Input email", t)
+        log_step("输入邮箱", t)
 
         t = time.time()
         time.sleep(0.5)
@@ -143,10 +143,10 @@ def run_browser_cycle():
                 continue_btn.click()
             except:
                 continue_btn.click(by_js=True)
-            log_step("Click continue", t)
+            log_step("点击继续", t)
         else:
             email_input.input("\n")
-            log_step("Press enter", t)
+            log_step("按回车键", t)
 
         time.sleep(3)
 
@@ -159,21 +159,21 @@ def run_browser_cycle():
             time.sleep(0.5)
 
         if not code_input:
-            log("[Error] Code input not found", "ERROR")
+            log("[错误] 未找到验证码输入框", "ERROR")
             return True
-        log_step("Find code input", t)
+        log_step("查找验证码输入框", t)
 
         t = time.time()
         code = mail.wait_for_code(timeout=180)
         if not code:
-            log("[Error] Code timeout", "ERROR")
+            log("[错误] 等待验证码超时", "ERROR")
             return True
-        log_step(f"Get code {code}", t)
+        log_step(f"获取验证码 {code}", t)
 
         t = time.time()
         code_input = page.ele('css:input[name="pinInput"]', timeout=3) or page.ele('css:input[type="tel"]', timeout=2)
         if not code_input:
-            log("[Error] Code input expired", "ERROR")
+            log("[错误] 验证码输入框已失效", "ERROR")
             return True
 
         code_input.click()
@@ -190,7 +190,7 @@ def run_browser_cycle():
             """)
         except:
             pass
-        log_step("Input code", t)
+        log_step("输入验证码", t)
 
         t = time.time()
         verify_btn = None
@@ -206,10 +206,10 @@ def run_browser_cycle():
                 verify_btn.click()
             except:
                 verify_btn.click(by_js=True)
-            log_step("Click verify", t)
+            log_step("点击验证", t)
         else:
             code_input.input("\n")
-            log_step("Press enter", t, success=False)
+            log_step("按回车键", t, success=False)
 
         for _ in range(5):
             time.sleep(3)
@@ -221,27 +221,27 @@ def run_browser_cycle():
         fail_keywords = ["verify", "oob", "error"]
 
         if any(kw in curr_url for kw in fail_keywords):
-            log("❌ Failed")
+            log("❌ 注册失败")
         else:
-            log("✅ Success")
+            log("✅ 注册成功")
             save_account(mail.email, mail.password)
 
     except Exception as e:
-        log(f"[Exception] {e}", "ERROR")
+        log(f"[异常] {e}", "ERROR")
     finally:
         if page:
             page.quit()
-        log("[Browser] Closed")
+        log("[浏览器] 已关闭")
 
     return True
 
 
 if __name__ == "__main__":
-    print("Starting... (Ctrl+C to stop)")
+    print("正在启动... (按 Ctrl+C 停止)")
     try:
         while True:
             run_browser_cycle()
-            print("\n已经完成一个注册，等待 3s 后继续...")
+            print("\n已完成一个注册，等待 3 秒后继续...")
             time.sleep(3)
     except KeyboardInterrupt:
         pass

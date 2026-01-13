@@ -23,7 +23,7 @@ class ClashManager:
 
     def _prepare_config(self):
         if not os.path.exists(self.config):
-            raise FileNotFoundError(f"Config not found: {self.config}")
+            raise FileNotFoundError(f"配置文件未找到: {self.config}")
 
         with open(self.config, "r", encoding="utf-8") as f:
             cfg = yaml.safe_load(f)
@@ -33,7 +33,7 @@ class ClashManager:
 
         with open(self.runtime_config, "w", encoding="utf-8") as f:
             yaml.safe_dump(cfg, f, allow_unicode=True)
-        print(f"[Clash] Config ready: {self.runtime_config}")
+        print(f"[Clash] 配置文件已准备: {self.runtime_config}")
 
     def start(self):
         if self.process:
@@ -51,12 +51,12 @@ class ClashManager:
         for _ in range(10):
             try:
                 requests.get(self.api_url, timeout=1)
-                print("[Clash] Started")
+                print("[Clash] 已启动")
                 return
             except:
                 time.sleep(1)
 
-        print("[Clash] Start failed")
+        print("[Clash] 启动失败")
         self.stop()
 
     def stop(self):
@@ -88,13 +88,13 @@ class ClashManager:
             encoded_group = urllib.parse.quote(group_name)
             url = f"{self.api_url}/proxies/{encoded_group}"
             requests.put(url, json={"name": proxy_name}, timeout=5)
-            print(f"[Clash] Switch: {proxy_name}")
+            print(f"[Clash] 切换节点: {proxy_name}")
             return True
         except:
             return False
 
     def find_healthy_node(self, group_name=None):
-        print("[Clash] Finding healthy node...")
+        print("[Clash] 正在查找可用节点...")
         proxies = self.get_proxies()
 
         if not group_name or group_name not in proxies:
@@ -123,18 +123,18 @@ class ClashManager:
                     time.sleep(1)
                     test_proxies = {"http": f"http://127.0.0.1:{self.port}", "https": f"http://127.0.0.1:{self.port}"}
 
-                    print(f"   Testing [{node}]...", end="")
+                    print(f"   测试节点 [{node}]...", end="")
                     resp = requests.get("https://www.google.com/ncr", proxies=test_proxies, timeout=5)
 
                     if resp.status_code == 200 and "sorry" not in resp.text and "unusual traffic" not in resp.text:
-                        print(" ✅ PASS")
+                        print(" ✅ 通过")
                         return node
                     else:
-                        print(" ❌ Blocked")
+                        print(" ❌ 被封锁")
                 except:
-                    print(" ❌ Timeout")
+                    print(" ❌ 超时")
 
-        print("[Clash] No healthy node found")
+        print("[Clash] 未找到可用节点")
         return None
 
 
