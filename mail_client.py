@@ -6,7 +6,7 @@ import time
 import requests
 
 BASE_URL = "https://api.duckmail.sbs"
-PROXY_URL = "http://127.0.0.1:7890"
+PROXY_URL = "http://127.0.0.1:17890"
 
 
 class DuckMailClient:

@@ -1,9 +1,9 @@
 # Clash 配置模板
 # 请将你的订阅配置复制到此文件，并重命名为 local.yaml
 
-mixed-port: 7890
+mixed-port: 17890
 allow-lan: true
-mode: rule
+mode: Global
 log-level: info
 external-controller: '127.0.0.1:9090'
 
@@ -18,5 +18,6 @@ proxy-groups:
     proxies:
       # 添加你的节点名称
 
+# 要更换 rule 匹配的组, MATCH 什么都没匹配到时执行
 rules:
-  - MATCH,DIRECT
+  - MATCH, ♻️ 自动选择

@@ -11,7 +11,7 @@ from mail_client import DuckMailClient
 
 CSV_FILE = "result.csv"
 LOG_FILE = "log.txt"
-PROXY_ADDR = "127.0.0.1:7890"
+PROXY_ADDR = "127.0.0.1:17890"
 
 
 def log(msg, level="INFO"):

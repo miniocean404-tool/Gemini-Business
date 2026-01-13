@@ -1,6 +1,8 @@
 import atexit
 import os
 import random
+import subprocess
+import sys
 import time
 import urllib.parse
 
@@ -9,7 +11,7 @@ import yaml
 
 
 class ClashManager:
-    def __init__(self, executable="clash.exe", config="local.yaml", runtime_config="config_runtime.yaml", port=7890, api_port=9091):
+    def __init__(self, executable="clash.exe", config="local.yaml", runtime_config="config_runtime.yaml", port=17890, api_port=9090):
         self.executable = executable
         self.config = config
         self.runtime_config = runtime_config
@@ -38,13 +40,13 @@ class ClashManager:
             return
 
         # 暂时注释 clash 启动逻辑, 使用本机 clash
-        # cmd = [self.executable, "-f", self.runtime_config]
-        # self.process = subprocess.Popen(
-        #     cmd,
-        #     stdout=subprocess.DEVNULL,
-        #     stderr=subprocess.DEVNULL,
-        #     creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0,
-        # )
+        cmd = [self.executable, "-f", self.runtime_config]
+        self.process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0,
+        )
 
         for _ in range(10):
             try:
